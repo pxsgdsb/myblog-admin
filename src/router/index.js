@@ -46,13 +46,35 @@ export const constantRoutes = [
   {
     path: '/',
     component: Layout,
-    redirect: '/dashboard',
+    redirect: '/home',
     children: [{
-      path: 'dashboard',
-      name: 'Dashboard',
-      component: () => import('@/views/dashboard/index'),
-      meta: { title: 'Dashboard', icon: 'dashboard' }
+      path: 'home',
+      name: 'home',
+      component: () => import('@/views/home/index'),
+      meta: { title: '首页', icon: 'el-icon-s-home' }
     }]
+  },
+
+  {
+    path: '/article',
+    component: Layout,
+    redirect: '/article/articleList',
+    name: 'article',
+    meta: { title: '文章管理', icon: 'el-icon-menu' },
+    children: [
+      {
+        path: 'articleList',
+        name: 'articleList',
+        component: () => import('@/views/article/articleList'),
+        meta: { title: '文章列表', icon: 'el-icon-notebook-2' }
+      },
+      {
+        path: 'articleAdd',
+        name: 'articleAdd',
+        component: () => import('@/views/article/articleAdd'),
+        meta: { title: '添加文章', icon: 'el-icon-document-add' }
+      }
+    ]
   },
 
   {
