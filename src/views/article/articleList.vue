@@ -1,113 +1,139 @@
 <template>
   <div class="app-container">
-    <el-table
-    :data="tableData"
-    style="width: 100%">
-    <el-table-column
-      label="日期"
-      width="180">
+  <div class="myhead">
+    <el-input class="search" v-model="searchValue" placeholder="请输入搜索内容"></el-input>
+    <el-button type="primary" icon="el-icon-search">搜索</el-button>
+  </div>
+  <el-table :data="tableData" style="width: 100%" v-loading="loading" border>
+    <el-table-column label="排序" width="80" align="center" type="index">
+    </el-table-column>
+    <!-- <el-table-column label="id" width="80" align="center" type="index">
       <template slot-scope="scope">
-        <i class="el-icon-time"></i>
-        <span style="margin-left: 10px">{{ scope.row.date }}</span>
+        <span style="margin-left: 10px">{{ scope.row.id }}</span>
+      </template>
+    </el-table-column> -->
+
+    <el-table-column label="标题" align="center">
+      <template slot-scope="scope">
+        <span style="margin-left: 10px">{{ scope.row.article_title }}</span>
       </template>
     </el-table-column>
-    <el-table-column
-      label="姓名"
-      width="180">
+
+    <el-table-column label="描述" align="center">
       <template slot-scope="scope">
-        <el-popover trigger="hover" placement="top">
-          <p>姓名: {{ scope.row.name }}</p>
-          <p>住址: {{ scope.row.address }}</p>
-          <div slot="reference" class="name-wrapper">
-            <el-tag size="medium">{{ scope.row.name }}</el-tag>
-          </div>
-        </el-popover>
+        <span style="margin-left: 10px">{{ scope.row.article_describe }}</span>
       </template>
     </el-table-column>
-    <el-table-column
-      label="姓名"
-      width="180">
+
+    <el-table-column label="分类" align="center">
       <template slot-scope="scope">
-        <el-popover trigger="hover" placement="top">
-          <p>姓名: {{ scope.row.name2 }}</p>
-          <p>住址: {{ scope.row.address }}</p>
-          <div slot="reference" class="name-wrapper">
-            <el-tag size="medium">{{ scope.row.name }}</el-tag>
-          </div>
-        </el-popover>
+        <el-tag class="pxtag" size="medium">{{ scope.row.class_name }}</el-tag>
       </template>
     </el-table-column>
-    <el-table-column label="操作">
+
+    <el-table-column label="标签" align="center" >
       <template slot-scope="scope">
-        <el-button
-          size="mini"
-          @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
-        <el-button
-          size="mini"
-          type="danger"
-          @click="handleDelete(scope.$index, scope.row)">删除</el-button>
+          <el-tag class="pxtag" :disable-transitions="true" type="success" size="medium" v-for="(item,index) in scope.row.label_name" :key="index">{{ item["label_name"] }}</el-tag>
+      </template>
+    </el-table-column>
+
+    <el-table-column label="添加时间" align="center" width="180">
+      <template slot-scope="scope">
+        <span style="margin-left: 10px">{{ scope.row.add_time }}</span>
+      </template>
+    </el-table-column>
+
+    <el-table-column label="操作" align="center" width="150">
+      <template slot-scope="scope">
+        <el-button size="mini" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
+        <el-button size="mini" type="danger" @click="handleDelete(scope.$index, scope.row)">删除</el-button>
       </template>
     </el-table-column>
   </el-table>
+  <el-pagination background layout="prev, pager, next" :page-size="pageSize" :total="total"
+    @current-change="currentChange"
+  ></el-pagination>
+
   </div>
 </template>
 
 <script>
-import { getList } from '@/api/table'
+import { getArticleList,deletArticle } from '@/api/article'
 
 export default {
-  // filters: {
-  //   statusFilter(status) {
-  //     const statusMap = {
-  //       published: 'success',
-  //       draft: 'gray',
-  //       deleted: 'danger'
-  //     }
-  //     return statusMap[status]
-  //   }
-  // },
   data() {
     return {
-      tableData: [{
-          date: '2016-05-02',
-          name: '王小虎',
-          name2: '王小虎',
-          address: '上海市普陀区金沙江路 1518 弄'
-        }, {
-          date: '2016-05-04',
-          name: '王小虎',
-          name2: '王小虎',
-          address: '上海市普陀区金沙江路 1517 弄'
-        }, {
-          date: '2016-05-01',
-          name: '王小虎',
-          name2: '王小虎',
-          address: '上海市普陀区金沙江路 1519 弄'
-        }, {
-          date: '2016-05-03',
-          name: '王小虎',
-          name2: '王小虎',
-          address: '上海市普陀区金沙江路 1516 弄'
-        }]
+      loading:false,
+      tableData: [],
+      page:1,
+      pageSize:10,
+      total:0,
+      searchValue:"",
     }
   },
   created() {
-    // this.fetchData()
+    this.fetchListData();
   },
   methods: {
       handleEdit(index, row) {
-        console.log(index, row);
+        this.$router.push({
+          path: '/article/articleAdd',
+          query: {
+            id: row["id"]
+          }
+        })
       },
       handleDelete(index, row) {
-        console.log(index, row);
-      },
-      fetchData() {
-        this.listLoading = true
-        getList().then(response => {
-          this.list = response.data.items
-          this.listLoading = false
+        this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          deletArticle({id:row["id"],article_title:row["article_title"]}).then(res=>{
+            this.fetchListData();
+          })
         })
+      },
+      fetchListData() {
+        this.loading = true;
+        getArticleList({page:this.page,pageSize:this.pageSize}).then(response => {
+          // console.log(response);
+          this.tableData = response.data;
+          this.total = response.count
+          this.loading = false;
+        })
+      },
+      currentChange(page){  
+        this.page=page;
+        this.fetchListData();
       }
+
   }
 }
 </script>
+<style scoped>
+.pxtag{
+  margin:3px ;
+}
+.el-table{
+  box-shadow: rgb(0 0 0 / 10%) 0px 2px 12px 0px;
+  padding: 15px 0px;
+}
+.el-pagination{
+  margin-top: 10px;
+  padding: 15px 10px;
+  box-shadow: rgb(0 0 0 / 10%) 0px 2px 12px 0px;
+}
+table tr td div span{
+  margin-left: 0;
+}
+.myhead{
+  padding: 15px 10px;
+  margin-bottom: 10px;
+  box-shadow: rgb(0 0 0 / 10%) 0px 2px 12px 0px;
+}
+.myhead .search{
+  width: 200px;
+  margin-right: 5px;
+}
+</style>
